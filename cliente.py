@@ -5,6 +5,7 @@ from argparse import ArgumentParser
 import slixmpp
 from slixmpp.exceptions import IqError, IqTimeout
 from aioconsole import ainput
+import base64 
 
 def Registro():
     usuario = input("Ingresa el usuario a registrar: ")
@@ -57,9 +58,9 @@ class Cliente(slixmpp.ClientXMPP):
     def mensajes_recibidos(self, msg):
         if msg['type'] in ('chat', 'normal'):
             if len(msg['body']) > 1024:
-                recv = msg['body'].encode()
-                img_name = "img.jpg"
-                with open(img_name, "wb") as dt:
+                recv = base64.b64decode(msg['body'].encode())
+                imagen_nombre = "img.jpg"
+                with open(imagen_nombre, "wb") as dt:
                     dt.write(recv) 
                 dt.close()
                 print("\n")
@@ -134,13 +135,14 @@ class Cliente(slixmpp.ClientXMPP):
 
             await self.get_roster()
 
+    #https://www.programcreek.com/2013/09/convert-image-to-string-in-python/
     def Enviar_archivo(self, archivo, destino):
-        inf =  open(archivo, 'rb')
-        datos = inf.read()
-        #print(datos)
-
+        with open(archivo, 'rb') as imagen:
+            archivo_final = base64.b64encode(imagen.read())
+        
+        
         try:
-            self.send_message(mto=destino, mbody=(str(datos)), mtype='chat')
+            self.send_message(mto=destino, mbody=str(archivo_final, 'UTF-8') , mtype='chat')
             print('Se envio el archivo')
             print("")
         except IqError:
@@ -276,4 +278,5 @@ if __name__ == '__main__':
         xmpp.process(forever=False)
                   
 
+                                                        
                                                         
